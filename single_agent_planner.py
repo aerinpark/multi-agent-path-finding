@@ -115,9 +115,11 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     closed_list = dict()
     earliest_goal_timestep = 0
     h_value = h_values[start_loc]
-    root = {'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None}
+    # Task 1.1.1: Add a new key/value pair for the timestep. Timestep for root is 0.
+    root = {'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None, 'timestep': 0}
     push_node(open_list, root)
-    closed_list[(root['loc'])] = root
+    # Task 1.1.2: Use tuples (cell, timestep) for closed_list
+    closed_list[(root['loc']), (root['timestep'])] = root
     while len(open_list) > 0:
         curr = pop_node(open_list)
         #############################
@@ -128,17 +130,21 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
             child_loc = move(curr['loc'], dir)
             if my_map[child_loc[0]][child_loc[1]]:
                 continue
+            # Task 1.1.1: The timestep of each node is 1 larger than of its parent node.
             child = {'loc': child_loc,
                     'g_val': curr['g_val'] + 1,
                     'h_val': h_values[child_loc],
-                    'parent': curr}
-            if (child['loc']) in closed_list:
-                existing_node = closed_list[(child['loc'])]
+                    'parent': curr,
+                    'timestep': curr['timestep'] + 1}
+            # Task 1.1.3: When generating child nodes, ensure to add a child node where the agent waits in its
+            # current cell instead of moving to a neighbouring cell
+            if (child['loc'], child['timestep']) in closed_list:
+                existing_node = closed_list[(child['loc']), child['timestep']]
                 if compare_nodes(child, existing_node):
-                    closed_list[(child['loc'])] = child
+                    closed_list[(child['loc']), (child['timestep'])] = child
                     push_node(open_list, child)
             else:
-                closed_list[(child['loc'])] = child
+                closed_list[(child['loc']), (child['timestep'])] = child
                 push_node(open_list, child)
 
     return None  # Failed to find solutions
