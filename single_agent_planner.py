@@ -1,5 +1,6 @@
 import heapq
 
+
 def move(loc, dir):
     directions = [(0, -1), (1, 0), (0, 1), (-1, 0)]
     return loc[0] + directions[dir][0], loc[1] + directions[dir][1]
@@ -25,8 +26,8 @@ def compute_heuristics(my_map, goal):
             child_loc = move(loc, dir)
             child_cost = cost + 1
             if child_loc[0] < 0 or child_loc[0] >= len(my_map) \
-               or child_loc[1] < 0 or child_loc[1] >= len(my_map[0]):
-               continue
+                    or child_loc[1] < 0 or child_loc[1] >= len(my_map[0]):
+                continue
             if my_map[child_loc[0]][child_loc[1]]:
                 continue
             child = {'loc': child_loc, 'cost': child_cost}
@@ -49,12 +50,20 @@ def compute_heuristics(my_map, goal):
 
 def build_constraint_table(constraints, agent):
     ##############################
-    # Task 1.2/1.3: Return a table that constains the list of constraints of
+    # Task 1.2/1.3: Return a table that contains the list of constraints of
     #               the given agent for each time step. The table can be used
     #               for a more efficient constraint violation check in the 
     #               is_constrained function.
-
-    pass
+    constraint_table = dict()
+    for constraint in constraints:
+        if constraint['agent'] == agent:
+            timestep = constraint['timestep']
+            if timestep not in constraint_table:
+                constraint_table[timestep] = [constraint['loc']]
+            else:
+                constraint_table[timestep].append(constraint['loc'])
+            # print(f"\nCurr_agent: {agent}, constraint_ts: {timestep}\nConstraint_table: {constraint_table}, size: {len(constraint['loc'])}")
+    return constraint_table
 
 
 def get_location(path, time):
@@ -81,8 +90,22 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
     # Task 1.2/1.3: Check if a move from curr_loc to next_loc at time step next_time violates
     #               any given constraint. For efficiency the constraints are indexed in a constraint_table
     #               by time step, see build_constraint_table.
-
-    pass
+    # Check if any constraint exists at timestep next_time
+    if next_time not in constraint_table:
+        return False
+    for loc in constraint_table[next_time]:
+        # print(f"Curr: {curr_loc}, next_loc: {next_loc}, loc: {loc}")
+        # Task 1.2: Check for vertex constraints
+        if len(loc) == 1:
+            if loc[0] == next_loc:
+                # print("Vertex Constraint\n")
+                return True
+        # Task 1.3: Check for edge constraints
+        elif len(loc) == 2:
+            if curr_loc == loc[0] and next_loc == loc[1]:
+                # print("Edge Constraint\n")
+                return True
+    return False
 
 
 def push_node(open_list, node):
@@ -115,6 +138,9 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     closed_list = dict()
     earliest_goal_timestep = 0
     h_value = h_values[start_loc]
+    # Task 1.2: Create a constraint table before generating a root node.
+    constraint_table = build_constraint_table(constraints, agent)
+    # print(f"\nAgent: {agent}, constraint_table: {constraint_table}")
     # Task 1.1.1: Add a new key/value pair for the timestep. Timestep for root is 0.
     root = {'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None, 'timestep': 0}
     push_node(open_list, root)
@@ -130,12 +156,16 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
             child_loc = move(curr['loc'], dir)
             if my_map[child_loc[0]][child_loc[1]]:
                 continue
+            # Task 1.2: Check whether the new node satisfies the constraints passed to the a_star function
+            # and prune it if it does not.
+            if is_constrained(curr['loc'], child_loc, curr['timestep']+1, constraint_table):
+                continue
             # Task 1.1.1: The timestep of each node is 1 larger than of its parent node.
             child = {'loc': child_loc,
-                    'g_val': curr['g_val'] + 1,
-                    'h_val': h_values[child_loc],
-                    'parent': curr,
-                    'timestep': curr['timestep'] + 1}
+                     'g_val': curr['g_val'] + 1,
+                     'h_val': h_values[child_loc],
+                     'parent': curr,
+                     'timestep': curr['timestep'] + 1}
             # Task 1.1.3: When generating child nodes, ensure to add a child node where the agent waits in its
             # current cell instead of moving to a neighbouring cell
             if (child['loc'], child['timestep']) in closed_list:
