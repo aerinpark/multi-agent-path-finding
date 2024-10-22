@@ -39,7 +39,7 @@ class PrioritizedPlanningSolver(object):
              },
             {'agent': 0,
              'loc': [(1, 5)],
-             'timestep': 6
+             'timestep': 10
              }
         ]
 
