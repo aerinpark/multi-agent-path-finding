@@ -140,7 +140,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     constraint_table = build_constraint_table(constraints, agent)
 
     # Task 1.4: Add goal constraints
-    earliest_goal_timestep = max(constraint['timestep'] for constraint in constraints)
+    earliest_goal_timestep = max(constraint['timestep'] for constraint in constraints) if constraints else 0
 
     # Task 1.1.1: Add a new key/value pair for the timestep. Timestep for root is 0.
     root = {'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None, 'timestep': 0}
