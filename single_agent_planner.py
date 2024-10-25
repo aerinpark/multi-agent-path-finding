@@ -153,6 +153,14 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         #############################
         for dir in range(4):
             child_loc = move(curr['loc'], dir)
+
+            if child_loc[0] >= len(my_map) or child_loc[0] < 0 or child_loc[1] >= len(my_map) or child_loc[1] < 0:
+                continue
+            # print(f"child LOC: {child_loc}")
+            # Task 1.4: Adjust the goal test condition to handle goal constraints
+            if curr['loc'] == goal_loc and curr['timestep'] >= earliest_goal_timestep:
+                return get_path(curr)
+            
             if my_map[child_loc[0]][child_loc[1]]:
                 continue
             # Task 1.1.1: The timestep of each node is 1 larger than of its parent node.
@@ -170,11 +178,6 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
                           'parent': curr,
                           'timestep': curr['timestep'] + 1
                           }
-
-            # Task 1.4: Adjust the goal test condition to handle goal constraints
-            if curr['loc'] == goal_loc and curr['timestep'] >= earliest_goal_timestep:
-                return get_path(curr)
-
             # Task 1.2: Check whether the new node satisfies the constraints passed to the a_star function
             # and prune it if it does not.
             if is_constrained(curr['loc'], child_loc, curr['timestep'] + 1, constraint_table):
