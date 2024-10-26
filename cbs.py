@@ -25,7 +25,7 @@ def detect_collision(path1, path2):
 			}
 			return collision
 		#   Task 3.1: Detect an edge collision
-		elif get_location(path1, t - 1) == get_location(path2, t) and get_location(path1, t) == get_location(path2, t - 1) and t > 0:
+		if get_location(path1, t - 1) == get_location(path2, t) and get_location(path1, t) == get_location(path2, t - 1) and t > 0:
 			collision = {
 				'a1': None,
 				'a2': None,
@@ -198,6 +198,7 @@ class CBSSolver(object):
 			curr = self.pop_node()
 			
 			if len(curr['collisions']) == 0:
+				self.print_results(curr)
 				return curr['paths']
 			
 			constraints = standard_splitting(curr['collisions'][0])
@@ -218,8 +219,7 @@ class CBSSolver(object):
 					new_node['collisions'] = detect_collisions(new_node['paths'])
 					new_node['cost'] = get_sum_of_cost(new_node['paths'])
 					self.push_node(new_node)
-		
-		self.print_results(root)
+
 		return None
 	
 	# return root['paths']

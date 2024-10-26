@@ -82,7 +82,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-
     result_file = open("results.csv", "w", buffering=1)
 
     for file in sorted(glob.glob(args.instance)):

@@ -100,7 +100,6 @@ class PrioritizedPlanningSolver(object):
                                 'timestep': index
                             }
                         )
-
                         # Task 2.2: Add edge constraints
                         if index > 0:
                             constraints.append(
@@ -117,7 +116,6 @@ class PrioritizedPlanningSolver(object):
                                     'timestep': index
                                 }
                             )
-
                         # Task 2.3: Add additional constraints
                         for goal_constraint in range(len(path), self.num_of_agents * len(path)):
                             constraints.append(
