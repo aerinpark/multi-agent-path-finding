@@ -112,7 +112,7 @@ class Animation:
                 if np.linalg.norm(pos1 - pos2) < 0.7:
                     d1.set_facecolor('red')
                     d2.set_facecolor('red')
-                    # print("COLLISION! (agent-agent) ({}, {}) at time {}".format(i, j, t/10))
+                    print("COLLISION! (agent-agent) ({}, {}) at time {}".format(i, j, t/10))
         return self.patches + self.artists
 
     @staticmethod

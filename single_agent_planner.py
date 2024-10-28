@@ -58,11 +58,28 @@ def build_constraint_table(constraints, agent):
     for constraint in constraints:
         if constraint['agent'] == agent:
             timestep = constraint['timestep']
+            
+            # Task 4.1: Add a new key 'positive' to indicate whether the constraint is positive or not.
+            positive = False
+            if 'positive' in constraint.keys():
+                positive = constraint['positive']
             if timestep not in constraint_table:
-                constraint_table[timestep] = [constraint['loc']]
+                constraint_table[timestep] = [{'loc': constraint['loc'], 'positive': positive}]
             else:
-                constraint_table[timestep].append(constraint['loc'])
-    # print(f"Constraint_table: {constraint_table}")
+                constraint_table[timestep].append({'loc': constraint['loc'], 'positive': positive})
+
+            # If positive constraint, add other negative constraints to enforce the agent to stay
+            if positive:
+                c_loc = constraint['loc']
+                for dir in range(4):
+                    neg_loc = move(c_loc[0], dir)
+                    # Vertex constraint
+                    if len(c_loc) == 1:
+                        constraint_table[timestep].append({'loc': [neg_loc], 'positive': False})
+                    # Edge constraint
+                    elif len(c_loc) == 2:
+                        if neg_loc != c_loc[1]:
+                            constraint_table[timestep].append({'loc': [c_loc[0], neg_loc], 'positive': False})
     return constraint_table
 
 
@@ -93,17 +110,20 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
     # Check if any constraint exists at timestep next_time
     if next_time not in constraint_table:
         return False
-    for loc in constraint_table[next_time]:
-        # print(f"Curr: {curr_loc}, next_loc: {next_loc}, loc: {loc}")
+    for entry in constraint_table[next_time]:
         # Task 1.2: Check for vertex constraints
-        if len(loc) == 1:
-            if loc[0] == next_loc:
+        if len(entry['loc']) == 1:
+            if entry['loc'][0] == next_loc:
                 # print("Vertex Constraint\n")
+                if entry['positive']:
+                    return False
                 return True
         # Task 1.3: Check for edge constraints
-        elif len(loc) == 2:
-            if curr_loc == loc[0] and next_loc == loc[1]:
+        elif len(entry['loc']) == 2:
+            if curr_loc == entry['loc'][0] and next_loc == entry['loc'][1]:
                 # print("Edge Constraint\n")
+                if entry['positive']:
+                    return False
                 return True
     return False
 
@@ -138,12 +158,12 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
 
     # Task 1.2: Create a constraint table before generating a root node.
     constraint_table = build_constraint_table(constraints, agent)
-    # print(f"constraint_table: {constraint_table}")
-    # print(f"constraints: {constraints}\n")
-
+    
     # Task 1.4: Add goal constraints
     earliest_goal_timestep = max(constraint['timestep'] for constraint in constraints) if constraints else 0
     agent_timestep_limit = max(constraint_table.keys()) if constraint_table else 0
+    upperbound = len(my_map) * len(my_map[0])
+    
     # Task 1.1.1: Add a new key/value pair for the timestep. Timestep for root is 0.
     root = {'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None, 'timestep': 0}
     push_node(open_list, root)
@@ -155,13 +175,14 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         curr = pop_node(open_list)
         
         # Task 1.4: Adjust the goal test condition to handle goal constraints
-        if curr['loc'] == goal_loc:
-            if curr['timestep'] >= agent_timestep_limit:
-                return get_path(curr)
-            if curr['timestep'] >= earliest_goal_timestep:
-                return get_path(curr)
         
-        #############################
+        if curr['loc'] == goal_loc:
+            if curr['timestep'] >= agent_timestep_limit or curr['timestep'] >= earliest_goal_timestep:
+                return get_path(curr)
+        if curr['timestep'] >= 500:
+            return None
+    
+            #############################
         for dir in range(4):
             child_loc = move(curr['loc'], dir)
             

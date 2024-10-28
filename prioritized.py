@@ -1,3 +1,4 @@
+import math
 import time as timer
 from single_agent_planner import compute_heuristics, a_star, get_sum_of_cost
 
@@ -73,13 +74,15 @@ class PrioritizedPlanningSolver(object):
         #         'timestep': 2
         #     }
         # ]
-
+        
         for i in range(self.num_of_agents):  # Find path for each agent
             path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
                           i, constraints)
             if path is None:
                 raise BaseException('No solutions')
+            
             result.append(path)
+            print(f"path for a{i}\n{path}\n")
 
             ##############################
             # Task 2: Add constraints here
@@ -87,45 +90,46 @@ class PrioritizedPlanningSolver(object):
             #            * path contains the solution path of the current (i'th) agent, e.g., [(1,1),(1,2),(1,3)]
             #            * self.num_of_agents has the number of total agents
             #            * constraints: array of constraints to consider for future A* searches
-
-            # Task 2: Create two loops, one iterating over path and one adding vertex constraints for all future agents
+            
+            
+            # Task 2: Create nested loops
+            # for each agent, check if its path conflicts with the path of other agents
             for agent in range(self.num_of_agents):
-                for index in range(len(path)):
+                for timestep in range(len(path)):
                     # Task 2.1: Add vertex constraints
                     if agent != i:
                         constraints.append(
                             {
                                 'agent': agent,
-                                'loc': [path[index]],
-                                'timestep': index
+                                'loc': [path[timestep]],
+                                'timestep': timestep,
+                                'positive': False
                             }
                         )
-                        # Task 2.2: Add edge constraints
-                        if index > 0:
+                        # # Task 2.2: Add edge constraints
+                        if timestep > 0:
                             constraints.append(
                                 {
                                     'agent': agent,
-                                    'loc': [path[index - 1], path[index]],
-                                    'timestep': index
+                                    'loc': [path[timestep], path[timestep - 1]],
+                                    'timestep': timestep,
+                                    'positive': False
                                 }
                             )
-                            constraints.append(
-                                {
-                                    'agent': agent,
-                                    'loc': [path[index], path[index - 1]],
-                                    'timestep': index
-                                }
-                            )
-                        # Task 2.3: Add additional constraints
-                        for goal_constraint in range(len(path), self.num_of_agents * len(path)):
-                            constraints.append(
-                                {
-                                    'agent': agent,
-                                    'loc': [path[-1]],
-                                    'timestep': goal_constraint
-                                }
-                            )
+                # Task 2.3: Add additional constraints
+                # upperbound = (len(self.my_map) * len(self.my_map[0]))
+                upperbound = sum(result[0:len(result)-2]) + (len(self.my_map) + len(self.my_map[0]))
+                if i != agent:
+                    for goal_constraint in range(len(path), upperbound):
+                        constraints.append(
+                            {
+                                'agent': agent,
+                                'loc': [path[-1]],
+                                'timestep': goal_constraint,
+                                'positive': False
+                            })
             ##############################
+        
 
         self.CPU_time = timer.time() - start_time
 
