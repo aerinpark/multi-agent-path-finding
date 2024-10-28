@@ -82,7 +82,7 @@ class PrioritizedPlanningSolver(object):
                 raise BaseException('No solutions')
             
             result.append(path)
-            print(f"path for a{i}\n{path}\n")
+            # print(f"path for a{i}\n{path}\n")
 
             ##############################
             # Task 2: Add constraints here
@@ -90,7 +90,6 @@ class PrioritizedPlanningSolver(object):
             #            * path contains the solution path of the current (i'th) agent, e.g., [(1,1),(1,2),(1,3)]
             #            * self.num_of_agents has the number of total agents
             #            * constraints: array of constraints to consider for future A* searches
-            
             
             # Task 2: Create nested loops
             # for each agent, check if its path conflicts with the path of other agents
@@ -106,7 +105,7 @@ class PrioritizedPlanningSolver(object):
                                 'positive': False
                             }
                         )
-                        # # Task 2.2: Add edge constraints
+                        # Task 2.2: Add edge constraints
                         if timestep > 0:
                             constraints.append(
                                 {
@@ -117,7 +116,6 @@ class PrioritizedPlanningSolver(object):
                                 }
                             )
                 # Task 2.3: Add additional constraints
-                # upperbound = (len(self.my_map) * len(self.my_map[0]))
                 upperbound = sum(result[0:len(result)-2]) + (len(self.my_map) + len(self.my_map[0]))
                 if i != agent:
                     for goal_constraint in range(len(path), upperbound):
